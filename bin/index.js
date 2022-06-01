@@ -1,12 +1,26 @@
 #!/usr/bin/env node
 var generate_app = require("./lib/mvc_structure.js");
 var generate_database = require("./lib/database.js");
+var generate_package = require("./lib/package.js");
 switch (process.argv[2]) {
-  case "crmvc":
+  case "create-all":
+    generate_package.install_package();
     generate_app.create_mvc_structure();
-  case "crdb":
     generate_database.create_database();
+    break;
+  case "install-package":
+    generate_package.install_package();
+    break;
+  case "create-mvc":
+    generate_app.create_mvc_structure();
+    break;
+  case "create-database":
+    generate_database.create_database();
+    break;
   case "help":
-    // console.log(process.argv);
-    console.log(`Option:\n- crmvc: create mvc structure\n- crdb: create database structure`);
+    console.log(
+      `Option:\n- create-all: create mvc structure and database\n- install-package: install all package of project\n- create-mvc: create mvc structure\n- create-database: create database structure`
+    );
+    break;
+  default:
 }

@@ -1,19 +1,17 @@
 var fs = require("fs");
 const { Input, AutoComplete } = require("enquirer");
+const {modelMySQL} = require("./model_generate");
+const {seedMySQL} = require("./seed_generate");
 var exec = require("child_process").exec,
   child;
 
 function create_database() {
-  var dirLib = "./lib";
-  var dirConnection = "./lib/connection.js";
-  if (!fs.existsSync(dirLib)) {
-    fs.mkdirSync(dirLib);
-  }
+  var dirConnection = "./models/index.js";
   const chooseDB = new AutoComplete({
     name: "database",
     message: "Choose your database: ",
-    limit: 20,
-    initial: 1,
+    // limit: 20,
+    initial: 0,
     choices: ["MySql", "MongoDb"],
   });
   const run = async () => {
@@ -22,27 +20,40 @@ function create_database() {
     if (database == "MySql") {
       fs.writeFile(
         dirConnection,
-        `const mysql = require('mysql');
-const con = mysql.createConnection({
+        `const User = require("./entities/user");
+const {SeedUser} = require("./seed_data/userData");
+function connection() {
+  var conn = {
     host: "localhost",
     user: "root",
     password: "root",
-    port: 32769
-});
+    port: 32769,
+    charset: "utf8",
+    database: "SalaryChange",
+  };
 
-con.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-    con.query("CREATE DATABASE SalaryChange", (err, result) => {
-        if (err) throw err;
-        console.log("Database created");
-    });
-});`,
+  // connect without database selected
+  var knex = require("knex")({ client: "mysql", connection: conn });
+  User.createUserTable(knex);
+  SeedUser(knex);
+}
+module.exports = {
+  connection,
+};        
+`,
         function (err) {
           if (err) throw err;
-          console.log("File is created successfully.");
+          console.log("Database is created successfully.");
         }
       );
+
+      child = exec("npm i knex mysql", function (error) {
+        if (error !== null) {
+          console.log("exec error: " + error);
+        }
+      });
+      modelMySQL();
+      seedMySQL();
     }
 
     if (database == "MongoDb") {
@@ -78,7 +89,7 @@ const findOne = async (db, collectionName, query) => {
 }`,
         function (err) {
           if (err) throw err;
-          console.log("File is created successfully.");
+          console.log("Database is created successfully.");
         }
       );
 

@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "create-app": "./bin/index.js"
+    "cli": "./bin/index.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,6 @@
   "homepage": "https://github.com/songtrenbo/nodejs_assignment_1#readme",
   "dependencies": {
     "enquirer": "^2.3.6",
-    "fs": "0.0.1-security",
-    "mongoose": "^6.3.5"
+    "fs": "0.0.1-security"
   }
 }
