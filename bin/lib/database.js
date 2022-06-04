@@ -1,7 +1,7 @@
 var fs = require("fs");
 const { Input, AutoComplete } = require("enquirer");
-const {modelMySQL} = require("./model_generate");
-const {seedMySQL} = require("./seed_generate");
+const { modelMySQL, modelMongoDB } = require("./model_generate");
+const { seedMySQL, seedMongoDB } = require("./seed_generate");
 var exec = require("child_process").exec,
   child;
 
@@ -20,34 +20,28 @@ function create_database() {
     if (database == "MySql") {
       fs.writeFile(
         dirConnection,
-        `const User = require("./entities/user");
-const {SeedUser} = require("./seed_data/userData");
-function connection() {
-  var conn = {
-    host: "localhost",
-    user: "root",
-    password: "root",
-    port: 32769,
-    charset: "utf8",
-    database: "SalaryChange",
-  };
+        `const { CreateUserTable } = require("./entities/user");
+const { UserData } = require("./seed/userData");
+var conn = {
+  host: "localhost",
+  user: "root",
+  password: "root",
+  port: 32769,
+  charset: "utf8",
+  database: "SalaryChange",
+};
 
-  // connect without database selected
-  var knex = require("knex")({ client: "mysql", connection: conn });
-  User.createUserTable(knex);
-  SeedUser(knex);
-}
-module.exports = {
-  connection,
-};        
-`,
+// connect without database selected
+var knex = require("knex")({ client: "mysql", connection: conn });
+CreateUserTable(knex);
+UserData(knex);               
+    `,
         function (err) {
           if (err) throw err;
           console.log("Database is created successfully.");
         }
       );
-
-      child = exec("npm i knex mysql", function (error) {
+      child = exec("npm install knex mysql", function (error) {
         if (error !== null) {
           console.log("exec error: " + error);
         }
@@ -57,36 +51,33 @@ module.exports = {
     }
 
     if (database == "MongoDb") {
+      child = exec(`npm install mongoose`, function (error) {
+        if (error != null) {
+          console.log(`exec error: ${error}`);
+        }
+      });
       fs.writeFile(
         dirConnection,
         `// To create DB, we need MongoClient object
-const mongoClient = require('mongodb').MongoClient;
-
-const url = "mongodb://localhost:27017/"
-const dbName = 'SalaryChange';
-
-mongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
-    if (err) throw err;
-    console.log("Connect to Database!");
-    const db = client.db(dbName);
-    const query = {
-        name: 'NashTech'
-    };
-
-    const result = await findOne(db, 'customers', query);
-    console.log('Ket qua: ', result);
-    await client.close();
-});
-
-const findOne = async (db, collectionName, query) => {
-    try {
-        // Get document of collection
-        const collection = db.collection(collectionName);
-        return await collection.findOne(query);
-    } catch (err) {
-        throw err
-    }
-}`,
+        const { seedUsers } = require("./seed/userData.js");
+        const User = require("./entities/user.js");
+        const mongoose = require("mongoose");
+        
+        const url = "mongodb://localhost:27017/SalaryChange";
+        mongoose
+          .connect(url)
+          .then(() => console.log("Mongoose connection open"))
+          .catch((err) => console.log(err));
+        const seedDB = async () => {
+          await User.deleteMany({});
+          await User.insertMany(seedUsers);
+        };
+        
+        seedDB().then(() => {
+          mongoose.connection.close();
+        });
+        
+                `,
         function (err) {
           if (err) throw err;
           console.log("Database is created successfully.");
@@ -98,6 +89,8 @@ const findOne = async (db, collectionName, query) => {
           console.log("exec error: " + error);
         }
       });
+      modelMongoDB();
+      seedMongoDB();
     }
   };
   run();

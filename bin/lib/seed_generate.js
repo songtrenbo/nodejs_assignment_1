@@ -1,44 +1,100 @@
 var fs = require("fs");
 
 function seedMySQL() {
-  var dirSeed = "./models/seed_data";
-  var dirSeedUser = "./models/seed_data/userData.js";
+  var dirSeed = "./models/seed";
+  var dirSeedUser = "./models/seed/userData.js";
   if (!fs.existsSync(dirSeed)) {
     fs.mkdirSync(dirSeed);
   }
   fs.writeFile(
     dirSeedUser,
-    `async function SeedUser(knex) {
-const exists = await knex.schema.hasTable("User");
-if (!exists) {
-  const users = [
-      { 
-          firstName: "A",
-          lastName: "Nguyen Van",
-          age: 25             
-      },
-      { 
-          firstName: "B",
-          lastName: "Tran Van",
-          age: 57             
-      },
-      { 
-          firstName: "C",
-          lastName: "Lam Van",
-          age: 61             
-      }
-  ];
-  knex('User').insert(users).then(() => console.log("data inserted"))
-  .catch((err) => { console.log(err); throw err })
+    `function UserData(knex) {
+const users = [
+  {
+    firstName: "A",
+    lastName: "Nguyen Van",
+    age: 25,
+    grossSalary: 20000000,
+    netSalary: 17460000,
+  },
+  {
+    firstName: "B",
+    lastName: "Tran Van",
+    age: 57,
+    grossSalary: 50000000,
+    netSalary: 41001750,
+  },
+  {
+    firstName: "C",
+    lastName: "Lam Van",
+    age: 61,
+    grossSalary: 15000000,
+    netSalary: 13303750,
+  },
+];
+knex("User")
+  .insert(users)
+  .then(() => console.log("data inserted"))
+  .catch((err) => {
+    console.log(err);
+    throw err;
+  })
   .finally(() => {
-      knex.destroy();
+    knex.destroy();
   });
 }
-}
+
 module.exports = {
-SeedUser,
-};
-`,
+UserData
+}`,
+    function (err) {
+      if (err) throw err;
+    }
+  );
+
+  
+}
+
+function seedMongoDB() {
+  var dirSeed = "./models/seed";
+  var dirSeedUser = "./models/seed/userData.js";
+  if (!fs.existsSync(dirSeed)) {
+    fs.mkdirSync(dirSeed);
+  }
+  fs.writeFile(
+    dirSeedUser,
+    `const seedUsers = [
+      {
+          firstName: 'Cong',
+          lastName: 'Nguyen',
+          age: 20,
+          grossSalary: 0,
+          netSalary: 0
+      },
+      {
+          firstName: 'A',
+          lastName: 'Nguyen',
+          age: 20,
+          grossSalary: 0,
+          netSalary: 0
+      },
+      {
+          firstName: 'Lam',
+          lastName: 'Dang',
+          age: 20,
+          grossSalary: 0,
+          netSalary: 0
+      },
+      {
+          firstName: 'Anh',
+          lastName: 'Pham',
+          age: 20,
+          grossSalary: 0,
+          netSalary: 0
+      },
+  ]
+  module.exports = { seedUsers };
+  `,
     function (err) {
       if (err) throw err;
     }
@@ -47,4 +103,5 @@ SeedUser,
 
 module.exports = {
   seedMySQL,
+  seedMongoDB,
 };

@@ -1,4 +1,6 @@
 var fs = require("fs");
+var exec = require("child_process").exec,
+  child;
 function create_mvc_structure() {
   var dirController = "./controllers";
   var dirModel = "./models";
@@ -8,7 +10,33 @@ function create_mvc_structure() {
   var dirHomeView = "./views/home.ejs";
   var dirHomeController = "./controllers/homeController.js";
   var dirHomeRoute = "./routes/home.js";
+  var dirpackage = "./package.json";
+  fs.writeFile(
+    dirpackage,
+    `{
+    "name": "react",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \\\"Error: no test specified\\\" && exit 1",
+      "start": "nodemon index.js",
+      "seed": "node ./models/index.js"
+    },
+    "author": "",
+    "license": "ISC"
+  }
+    `,
+    function (err) {
+      if (err) throw err;
+    }
+  );
 
+  child = exec("npm install express ejs nodemon", function (error) {
+    if (error !== null) {
+      console.log("exec error: " + error);
+    }
+  });
   if (!fs.existsSync(dirController)) {
     fs.mkdirSync(dirController);
   }
@@ -24,10 +52,8 @@ function create_mvc_structure() {
   fs.writeFile(
     dirIndex,
     `const express = require('express')
-const connect = require('./models/index');
 const app = express()
 app.set('view engine', 'ejs');
-connect.connection();
 app.use('/', require('./routes/home'));
 const port = 3000;
 app.listen(port, () => console.log(\`Server running on: http://localhost:\${port}\`))`,
@@ -54,11 +80,11 @@ app.listen(port, () => console.log(\`Server running on: http://localhost:\${port
   fs.writeFile(
     dirHomeRoute,
     `const express = require('express')
-  const {homeView} = require('../controllers/homeController');
-  const router = express.Router();
-  router.get('/', homeView);
-  
-  module.exports = router;`,
+const {homeView} = require('../controllers/homeController');
+const router = express.Router();
+router.get('/', homeView);
+
+module.exports = router;`,
     function (err) {
       if (err) throw err;
     }
